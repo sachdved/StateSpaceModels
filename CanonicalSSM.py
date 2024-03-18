@@ -15,9 +15,10 @@ class SSMLayer(torch.nn.Module):
         dt_min = 0.001,
         dt_max = 0.1,
     ):
-        super.__init__()
+        super().__init__()
         self.latent_dim = latent_dim
         self.A, self.B, self.C, self.D = self.random_SSM(latent_dim)
+        self.Abar, self.Bbar, self.Cbar, self.Dbar = self.discretize(self.A, self.B, self.C, self.D, self.dt)
         self.dt = self.log_step_initializer(dt_min, dt_max)
 
     def random_SSM(
@@ -36,7 +37,7 @@ class SSMLayer(torch.nn.Module):
         D = torch.autograd.Variable(torch.rand(size=(1,1)), requires_grad = True)
         return A, B, C, D
 
-    def log_step_initializer(dt_min = 0.001, dt_max = 0.1):
+    def log_step_initializer(self, dt_min = 0.001, dt_max = 0.1):
         """
         initial guess for dt, from random number generator. to be learned.
     
@@ -146,7 +147,7 @@ class SSMLayer(torch.nn.Module):
             mode: recurrent mode ("recurrent"), or convolution mode (True : direct convolution, False : fourier transform)
         """
         if mode == "recurrent":
-            return self.scan_SSM(self.Abar, self.Bbar, self.Cbar, u, x0)
+            return self.scan_SSM(self.Abar, self.Bbar, self.Cbar, u, x0)[1]
         else:
             K = self.K_conv(self.Abar, self.Bbar, self.Cbar, u.shape[0])
             return self.causal_conv(u, K, mode)
