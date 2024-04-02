@@ -276,8 +276,8 @@ class S4Layer(torch.nn.Module):
         k11 = self.cauchy(aterm[1] * bterm[1].unsqueeze(0), g.unsqueeze(1), Lambda)
     
         atRoots = c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
-        out = torch.fft.irfft(atRoots, L)
-        return out
+        out = torch.fft.ifft(atRoots, L)
+        return out.real
 
     
     def cauchy(self, k : torch.Tensor, omega : torch.Tensor, lambd : torch.Tensor):
